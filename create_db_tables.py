@@ -1,8 +1,15 @@
 from sqlalchemy import create_engine, Table, Column, MetaData, Integer, String, Date
+import os
 
 
 def create_db_tables():
-    engine = create_engine('mysql://admin:passw0rd@aa1w9ri61a1hrx1.cepejztx2jqb.us-west-2.rds.amazonaws.com:3306/ebdb')
+
+    name = os.environ['RDS_DB_NAME']
+    user = os.environ['RDS_USERNAME']
+    password = os.environ['RDS_PASSWORD']
+    host = os.environ['RDS_HOSTNAME']
+    port = os.environ['RDS_PORT']
+    engine = create_engine('mysql://' + user + ':' + password + '@' + host + ':' + port + '/' + name)
     metadata = MetaData(engine)
     Table("FeatureRequest", metadata,
           Column('id', Integer, primary_key=True, nullable=False, autoincrement=True),

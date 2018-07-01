@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<script type='text/javascript' src='js/knockout-3.4.2.js'></script>
-<script type='text/javascript' src='js/index.js'></script>
 <html lang="en">
 <body>
     <p>Title: <input data-bind="value: title" /></p>
     <p>Description: <input data-bind="value: description" /></p>
-    <br>
-    <p>Title: <strong data-bind="text: title"></strong></p>
-    <p>Description: <strong data-bind="text: description"></strong></p>
+    <p>Client: <select data-bind="options: client, optionsText: 'name', optionsValue: 'id', value: selectedClient, event: {change: getUpdatedPriority}"></select></p>
+    <p>Client Priority: <select data-bind="options: priority, value: selectedPriority"></select></p>
+    <!--<p>Target Date: <input data-bind="datePicker: MyDate" type="date" /></p>-->
+    <p>Area: <select data-bind="options: area, optionsText: 'name', optionsValue: 'id', value: selectedArea"></select></p>
+    <p><button data-bind="click: submitFeatureRequest">Submit</button></p>
+    <strong data-bind="text: results"></strong>
 </body>
+<script type='text/javascript' src="{{ url_for('static', filename='js/knockout-3.5.0rc.js') }}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script type='text/javascript' src="{{ url_for('static', filename='js/index.js') }}"></script>
 </html>
