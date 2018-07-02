@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Table, Column, MetaData, Integer, String, Date
+from sqlalchemy import create_engine, Table, Column, MetaData, Integer, String, Date, Text
 import os
 
 
@@ -14,7 +14,7 @@ def create_db_tables():
     Table("FeatureRequest", metadata,
           Column('id', Integer, primary_key=True, nullable=False, autoincrement=True),
           Column('title', String(64), nullable=False),
-          Column('description', String(300), nullable=False),
+          Column('description', Text, nullable=False),
           Column('clientId', Integer, nullable=False),
           Column('priority', Integer, nullable=False),
           Column('target', Date, nullable=False),
@@ -44,3 +44,15 @@ def create_db_tables():
         {'name': 'Claims'},
         {'name': 'Reports'},
     ])
+
+def drop_db_tables():
+    name = os.environ['RDS_DB_NAME']
+    user = os.environ['RDS_USERNAME']
+    password = os.environ['RDS_PASSWORD']
+    host = os.environ['RDS_HOSTNAME']
+    port = os.environ['RDS_PORT']
+    engine = create_engine('mysql://' + user + ':' + password + '@' + host + ':' + port + '/' + name)
+    connection = engine.connect()
+    connection.execute("DROP TABLE FeatureRequest")
+    connection.execute("DROP TABLE Client")
+    connection.execute("DROP TABLE Area")

@@ -2,35 +2,59 @@ var req = new XMLHttpRequest();
 var clients = []
 
 $(document).ready(function() {
+    $( "#datepicker" ).datepicker();
 
     function FeatureRequestModel() {
         var self = this;
+        var areaMap = {};
         self.title = ko.observable();
         self.description = ko.observable();
         self.area = ko.observableArray();
         self.client = ko.observableArray();
         self.priority = ko.observableArray();
-        self.targetDate = ko.observable("2018-06-30");
+        self.targetDate = ko.observable();
         self.selectedClient = ko.observable();
         self.selectedArea = ko.observable();
         self.selectedPriority = ko.observable();
         self.results = ko.observable();
+        self.clientRequests = ko.observableArray();
 
-        self.getUpdatedPriority = function(){
+        self.getUpdatedData = function(){
             getPriorityList(self.selectedClient());
+            updateFeatureRequestsList(self.selectedClient());
         }
 
         function getPriorityList(client_id){
             $.getJSON('http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/FeatureRequest/Client/' + client_id, function(data) {
+                var lowestPriority = 1;
                 self.priority.removeAll()
                 if (data.length == 0){
                     self.priority.push(1)
                 } else {
                     data.forEach(function(item){
-                        self.priority.push(item['priority'])
+                        var itemPriority = item['priority']
+                        self.priority.push(itemPriority)
+                        if (itemPriority > lowestPriority)
+                            lowestPriority = itemPriority;
                     })
+                    self.priority.push(lowestPriority+1);
                 }
+                self.priority.sort(function(left, right){ return parseInt(left) == parseInt(right) ? 0 : (parseInt(left) < parseInt(right) ? -1 : 1) });
             })
+        }
+
+        function updateFeatureRequestsList(client_id){
+            self.clientRequests.removeAll()
+            $.getJSON('http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/FeatureRequest/Client/' + client_id, function(data) {
+                data.forEach(function(item){
+                    item.areaId = areaMap[item.areaId]
+                    if (item.target)
+                        item.target = new Date(item.target).toISOString().split('T')[0]
+
+                    self.clientRequests.push(item)
+                })
+                sortClientRequests();
+            });
         }
 
         $.getJSON("http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/Client", function(data) {
@@ -43,6 +67,7 @@ $(document).ready(function() {
         $.getJSON("http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/Area", function(data) {
             data.forEach(function(item){
                 self.area.push(item)
+                areaMap[item.id] = item.name;
             })
         });
 
@@ -53,24 +78,49 @@ $(document).ready(function() {
             featureRequest['description'] = self.description()
             featureRequest['clientId'] = self.selectedClient()
             featureRequest['priority'] = self.selectedPriority()
-            featureRequest['target'] = self.targetDate()
+            featureRequest['target'] = new Date(self.targetDate()).toISOString().split('T')[0]
             featureRequest['areaId'] = self.selectedArea()
 
-            req.open("POST", "http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/FeatureRequest", false);
-            req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-            req.send(JSON.stringify(featureRequest));
-            if (req.status == 201)
-                self.results("Feature Request successfully submitted. Thank you!");
-                clearFeatureRequest();
+            $.getJSON('http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/FeatureRequest/Client/' + self.selectedClient(), function(data) {
+                data.forEach(function(item){
+                    if (item['priority'] >= self.selectedPriority()){
+                        var newPriority = item['priority']+1;
+                        item['priority'] = newPriority;
+                        item['target'] = new Date(item.target).toISOString().split('T')[0]
+                        $.ajax({
+                            type: "POST",
+                            url: "http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/FeatureRequest/"+ item.id,
+                            async: true,
+                            data: JSON.stringify(item),
+                            contentType: 'application/json',
+                        })
+                    }
+                })
+                $.ajax({
+                type: "POST",
+                url: "http://featurerequestwcf-env.2hgppihysk.us-west-2.elasticbeanstalk.com/api/v1/FeatureRequest",
+                async: true,
+                data: JSON.stringify(featureRequest),
+                success: function(){
+                    self.results("Feature Request successfully submitted. Thank you!");
+                    featureRequest.areaId = areaMap[featureRequest.areaId];
+                    updateFeatureRequestsList(self.selectedClient());
+                    getPriorityList(self.selectedClient());
+                    clearFeatureRequest();
+                },
+                contentType: 'application/json'
+                })
+            });
+        }
+
+        function sortClientRequests(){
+            self.clientRequests.sort(function(left, right) { return left.priority == right.priority ? 0 : (left.priority < right.priority ? -1 : 1) })
         }
 
         function clearFeatureRequest(){
             self.title("");
             self.description("");
-            self.targetDate = ko.observable("2018-06-30");
-            self.selectedClient(self.client()[0]);
-            self.selectedArea(self.area()[0]);
-            self.selectedPriority(self.priority()[0]);
+            self.targetDate("");
         }
 
     }
