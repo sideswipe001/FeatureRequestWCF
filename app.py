@@ -10,9 +10,11 @@ password = os.environ['RDS_PASSWORD']
 host = os.environ['RDS_HOSTNAME']
 port = os.environ['RDS_PORT']
 engine = create_engine('mysql://' + user + ':' + password + '@' + host + ':' + port + '/' + name)
-drop_db_tables()
-if not engine.dialect.has_table(engine, "Client"):
-    create_db_tables()
+
+# If the DB exists, we want to drop everything, so we get a clean start every time.
+if engine.dialect.has_table(engine, "Client"):
+    drop_db_tables()
+create_db_tables()
 
 
 @application.route('/')
@@ -20,6 +22,7 @@ def index():
     return render_template('index.html')
 
 
+# This endpoint requests all Clients. Returns a JSON list of Clients.
 @application.route('/api/v1/Client', methods=['GET'])
 def get_clients():
 
@@ -30,6 +33,7 @@ def get_clients():
     return jsonify(results)
 
 
+# This endpoint requests all Areas. Returns a JSON list of Areas.
 @application.route('/api/v1/Area', methods=['GET'])
 def get_area():
 
@@ -40,6 +44,7 @@ def get_area():
     return jsonify(results)
 
 
+# This endpoint allows for adding new feature requests. POST with a JSON body containing a single FeatureRequest
 @application.route('/api/v1/FeatureRequest', methods=['POST'])
 def add_request():
     if not request.json:
@@ -63,6 +68,19 @@ def add_request():
     return Response("", status=200, mimetype='text/html')
 
 
+# This endpoint requests all existing feature requests for all clients. It returns a JSON list of FeatureRequests
+@application.route('/api/v1/FeatureRequest/', methods=['GET'])
+def get_all_requests():
+    connection = engine.connect()
+    results = []
+    for row in connection.execute('SELECT * FROM FeatureRequest'):
+        results.append({'id': row[0], 'title': row[1], 'description': row[2], 'clientId': row[3], 'priority': row[4],
+                        'target': row[5], 'areaId': row[6]})
+    return jsonify(results)
+
+
+# This endpoint allows for updating a single feature request. The POST body contains a single FeatureRequest.
+# Returns a 200 with blank text if successful.
 @application.route('/api/v1/FeatureRequest/<int:feature_request_id>', methods=['POST'])
 def update_request(feature_request_id):
     if not request.json:
@@ -88,6 +106,8 @@ def update_request(feature_request_id):
     return Response("", status=200, mimetype='text/html')
 
 
+# This endpoint requests all FeatureRequests for a single client.
+# It returns a JSON list of all FeatureRequests for that client
 @application.route('/api/v1/FeatureRequest/Client/<int:client_id>', methods=['GET'])
 def get_requests(client_id):
     connection = engine.connect()

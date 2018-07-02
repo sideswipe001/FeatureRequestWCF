@@ -1,0 +1,11 @@
+textarea {
+    width: 50vw;
+    height: 25vh;
+    border: 1px solid #888;
+    resize: none;
+}
+
+input[type="text"] {
+    width: 50vw;
+    border: 1px solid #888;
+}

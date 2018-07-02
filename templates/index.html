@@ -1,39 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>-->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/style.css') }}">
     <script type='text/javascript' src="{{ url_for('static', filename='js/knockout-3.5.0rc.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script type='text/javascript' src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-    <p>Title: <input data-bind="value: title" /></p>
-    <p>Description: <input type="textarea" data-bind="value: description" /></p>
-    <p>Client: <select data-bind="options: client, optionsText: 'name', optionsValue: 'id', value: selectedClient, event: {change: getUpdatedData}"></select></p>
-    <p>Client Priority: <select data-bind="options: priority, value: selectedPriority"></select></p>
-    <p>Target Date: <input id="datepicker" type="text" data-bind="value: targetDate"/></p>
-    <p>Area: <select data-bind="options: area, optionsText: 'name', optionsValue: 'id', value: selectedArea"></select></p>
-    <p><button data-bind="click: submitFeatureRequest">Submit</button></p>
-    <strong data-bind="text: results"></strong>
+    <div class="container">
+        <h1>Feature Request Entry</h1>
+        <table class="table">
+            <tr>
+                <td>Title</td><td><input data-bind="value: title" type="text" /></td>
+            </tr>
+            <tr>
+                <td>Description</td><td><textarea rows="10" data-bind="value: description"></textarea></td>
+            </tr>
+            <tr>
+                <td>Client</td><td><select data-bind="options: client, optionsText: 'name', optionsValue: 'id', value: selectedClient, event: {change: getUpdatedData}"></select></td>
+            </tr>
+            <tr>
+                <td>Client Priority</td><td><select data-bind="options: priority, value: selectedPriority"></select></td>
+            </tr>
+                <td>Target Date</td><td><input id="datepicker" data-bind="value: targetDate"/></td>
+            <tr>
+                <td>Area</td><td><select data-bind="options: area, optionsText: 'name', optionsValue: 'id', value: selectedArea"></select></td>
+            </tr>
+        </table>
+        <p><button data-bind="click: validateInput">Submit</button></p>
+        <strong data-bind="text: submitMessage"></strong>
+    </div>
     <br>
     <br>
-    <table>
-        <tr>
-            <th>Title</th><th>Description</th><th>Priority</th><th>Target Date</th><th>Area</th>
-            <tbody data-bind="foreach: clientRequests">
-                <tr>
-                    <td data-bind="text: title"></td>
-                    <td data-bind="text: description"></td>
-                    <td data-bind="text: priority"></td>
-                    <td data-bind="text: target"></td>
-                    <td data-bind="text: areaId"></td>
-                </tr>
-            </tbody>
-        </tr>
-    </table>
+    <div class="container">
+        <h1>Existing feature requests for <strong data-bind="text: selectedClientName"></strong></h1>
+        <table class="table">
+            <tr>
+                <th>Title</th><th>Description</th><th>Priority</th><th>Target Date</th><th>Area</th>
+                <tbody data-bind="foreach: clientRequests">
+                    <tr>
+                        <td data-bind="text: title"></td>
+                        <td data-bind="text: description"></td>
+                        <td data-bind="text: priority"></td>
+                        <td data-bind="text: target"></td>
+                        <td data-bind="text: areaId"></td>
+                    </tr>
+                </tbody>
+            </tr>
+        </table>
+        <div data-bind="visible: clientRequests().length==0">
+            Client has no feature requests.
+        </div>
+    </div>
 </body>
 </html>
